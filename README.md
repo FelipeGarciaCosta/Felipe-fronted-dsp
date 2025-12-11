@@ -1,70 +1,39 @@
-# Getting Started with Create React App
+# DSP Frontend (React)
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This repository contains the React frontend used as the starting point for a migration from a Java-based UI to React. It is a small SPA built with Create React App, TypeScript for select files, Tailwind CSS for styling, and Axios for backend calls.
 
-## Available Scripts
+**Quick goals:** migrate UI responsibilities from the Java stack to a modern React codebase, centralize API calls, and prepare for a staged migration.
 
-In the project directory, you can run:
+**Tech stack:** React, TypeScript (partial), Tailwind CSS, Axios, React Router.
 
-### `npm start`
+**How to run**
+- **Requirements:** Node.js (14+), npm
+- **Install:** `npm install`
+- **Start (dev):** `npm start` — opens at http://localhost:3000
+- **Build (prod):** `npm run build`
+- **Tests:** `npm test`
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+**Project structure (high level)**
+- **Config & tools**: [package.json](package.json), [tailwind.config.js](tailwind.config.js), [postcss.config.js](postcss.config.js)
+- **Public root**: [public/index.html](public/index.html)
+- **App entry**: [src/index.tsx](src/index.tsx)
+- **Router & auth guard**: [src/App.tsx](src/App.tsx)
+- **Styles**: [src/index.css](src/index.css), [src/App.css](src/App.css)
+- **Main components**: [src/components](src/components) — `Login`, `Inicio`, `Header`, `Footer`, `Dashboard`, `DashboardCard`, `SVG` icons
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+**Important implementation notes**
+- The login flow is implemented in [src/components/Login.tsx](src/components/Login.tsx). It calls a backend at `http://10.1.1.38:8080/api/auth/login` and stores `token`, `user`, and `roles` in `localStorage` on success.
+- `PrivateRoute` in [src/App.tsx](src/App.tsx) checks for a stored token and redirects unauthenticated users to the login page.
+- Visual styling is done with Tailwind CSS classes throughout the components; a small custom CSS set is in [src/index.css](src/index.css).
 
-### `npm test`
+**Immediate refactor suggestions for migration**
+- **Externalize backend URL**: move hardcoded API URL in `Login.tsx` to an environment variable (e.g. `REACT_APP_API_URL`) to allow local/dev/prod targets.
+- **Centralize API client**: create an `api.ts` that configures Axios (baseURL, interceptors for auth header, error handling, refresh token flow).
+- **Auth context**: replace `localStorage` checks with a React context (`AuthProvider`) so all components can access auth state and roles.
+- **TypeScript conversion**: most components are `.jsx`. Convert to `.tsx` and add stricter types (props, API responses). `Login.tsx` already uses TypeScript.
+- **Routing & permissions**: extend `PrivateRoute` to check `roles`/permissions and provide graceful fallback pages.
+- **Unit / E2E tests**: add focused tests for auth flows and critical components; consider Cypress for E2E when backend is stable.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+**Security & deployment notes**
+- Tokens are currently stored in `localStorage` — acceptable for many apps but consider HttpOnly cookies for improved XSS protection if the backend supports it.
+- Ensure CORS is correctly configured on the backend since the frontend calls `http://10.1.1.38:8080`.
